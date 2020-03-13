@@ -1,70 +1,69 @@
 """Run MCMC for atmospheric retrieval"""
 
 '''___Built-In Modules___'''
+from kumara.forwardModel.ForwardModelFactory import ForwardModelFactory
+from kumara.sensors.SensorFactory import SensorFactory
 
 '''___Third-Party Modules___'''
 import numpy as np
-from netCDF4 import Dataset
-from scipy import stats
-import xarray as xr
-import os
 import emcee
-
+import threading
+from multiprocessing import Pool
+import time
 '''___NPL Modules___'''
 
 
 '''___Authorship___'''
 __author__ = "Pieter De Vis"
-__created__ = "11/11/2019"
+__created__ = "01/03/2020"
 __maintainer__ = "Pieter De Vis"
 __email__ = "pieter.de.vis@npl.co.uk"
 __status__ = "Development"
 
 
-def findchimarg_all(theta):
-    Ptots=np.zeros(len(dat_all[0]))
-    for SFH_i in range(6):
-        Models_i=np.empty((len(Minigrid),6,len(Tendgrid)))
-        for ig in range(len(Minigrid)): # run models for the 6 initial masses, and interpolate between them to get the other initial masses
-            Models_i[ig]=currentModel(Minigrid[ig],SFHgrid[SFH_i],theta)
-        intf=interp1d(Minigrid,Models_i,axis=0)
-        for Mini_i in range(len(Minigrid_int)):
-            mod=intf(Minigrid_int[Mini_i])
-            for t in range(len(mod[0])):
-                for it in range(len(dat_all[0])):
-                    dat_s= [dat_all[di][it] for di in range(len(dat_all))]
-                    err_s= [err_all[di][it] for di in range(len(err_all))]
-                    chisum=0
-                    for i in range(len(err_s)):
-                        ob2=mod[i][t]
-                        if dat_s[i]>-98:
-                            chi=(ob2-dat_s[i])**2/err_s[i]**2
-                        if np.isfinite(chi):
-                            chisum+=chi
-                    Ptots[it]+=np.exp(-0.5*chisum)
-    return -2*np.log(Ptots)
+# lock = threading.Lock()
+class MCMCRetrieval:
+    def __init__(self,sensor,wavs,observed,uncertainty,reflpath,forwardmodel='libradtran',path='MCMC'):
+        self.observed=observed
+        self.uncertainty=uncertainty
+        self.FM=ForwardModelFactory.create_model(forwardmodel,path)
+        self.sensor=SensorFactory.create_sensor(sensor,wavs)
+        self.reflpath=reflpath
 
-def lnlike(theta):
-    return -0.5*(np.sum(findchimarg_all(theta)))
+    def run_retrieval(self,theta_0,nwalkers,steps):
+        
+        ndimw = len(theta_0)
+        pos = [theta_0*np.random.normal(1.0,0.1,len(theta_0)) for i in range(nwalkers)]
 
-def lnprior(theta):
-    if np.log10(min(SNgrid)) <= theta[0] <= np.log10(max(SNgrid)) and min(destroygrid) <=theta[1] <= max(destroygrid) and np.log10(min(fragmentgrid)) <=theta[2] <= np.log10(max(fragmentgrid)) and np.log10(min(ggcloudgrid)) <=theta[3] <= np.log10(max(ggcloudgrid)) and min(ggdiffusegrid) <=theta[4] <= 10. and min(favailablegrid) <=theta[5] <= max(favailablegrid):
-        return 0.0
-    return -np.inf
+        with Pool(processes=20) as pool:
+            sampler = emcee.EnsembleSampler(nwalkers, ndimw, self.lnprob, pool=pool)
+            sampler.run_mcmc(pos, steps, progress=True)
+        # sampler = emcee.EnsembleSampler(nwalkers, ndimw, self.lnprob)
+        # sampler.run_mcmc(pos, steps, progress=True)
 
-def lnprob(theta):
-    lp = lnprior(theta)
-    if not np.isfinite(lp):
+        return sampler.chain[:, :, :].reshape((-1, ndimw))
+
+    def find_chisum(self,theta):
+        # lock.acquire()
+        filenameMCMC="MCMC_%s"%time.time()
+        # lock.release()
+
+        self.FM.run_model(filenameMCMC,self.reflpath,theta[0],theta[1])
+        rad_RT=self.FM.get_TOA(filenameMCMC)
+        wavs_RT=self.FM.get_wavs(filenameMCMC)
+        model=self.sensor.convolve(wavs_RT,rad_RT)
+        return np.sum((model-self.observed)**2/self.uncertainty**2)
+
+    def lnlike(self,theta):
+        return -0.5*(self.find_chisum(theta))
+
+    def lnprior(self,theta):
+        if True:
+            return 0.0
         return -np.inf
-    print(theta,lp+lnlike(theta))
-    return lp + lnlike(theta)
 
-def retrieval():
-    ndimw, nwalkers = 6, 100
-    pos = [np.array([np.random.uniform(np.log10(min(SNgrid)),np.log10(max(SNgrid)),1)[0],np.random.uniform(min(destroygrid),max(destroygrid),1)[0],(np.random.uniform(np.log10(min(fragmentgrid)),np.log10(max(fragmentgrid)),1)[0]),(np.random.uniform(np.log10(min(ggcloudgrid)),np.log10(max(ggcloudgrid)),1)[0]),np.random.uniform(min(ggdiffusegrid),10,1)[0],np.random.uniform(min(favailablegrid),max(favailablegrid),1)[0]]) for i in range(nwalkers)]
-
-#with terminating(Pool(processes=30)) as pool:
-    sampler = emcee.EnsembleSampler(nwalkers, ndimw, lnprob, pool=pool)
-    sampler.run_mcmc(pos, 200, progress=True)
-
-samples = sampler.chain[:, :, :].reshape((-1, ndimw))
+    def lnprob(self,theta):
+        lp = self.lnprior(theta)
+        if not np.isfinite(lp):
+            return -np.inf
+        return lp + self.lnlike(theta)

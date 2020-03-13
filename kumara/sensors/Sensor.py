@@ -3,8 +3,6 @@
 '''___Built-In Modules___'''
 
 '''___Third-Party Modules___'''
-#import Libradtran
-import os
 from abc import ABC, abstractmethod
 '''___NPL Modules___'''
 
@@ -16,8 +14,8 @@ __maintainer__ = "Pieter De Vis"
 __email__ = "pieter.de.vis@npl.co.uk"
 __status__ = "Development"
 
-class ForwardModel(ABC): 
-    def __init__(self, RTcode='libradtran',path='./libradtran/'):
+class Sensor(ABC): 
+    def __init__(self, wavs):
         """
         Initialise Forward Model
 
@@ -34,33 +32,20 @@ class ForwardModel(ABC):
         :param kwargs: Parsing parameters
         """
 
-        # Initialise class attributes
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        self.path=path
-        self.lambd = None 
-        self.TOAradiance = None
-        self.RTcode = RTcode
-
-    
+        self.wavs=wavs
+        self.radiances = None 
+        self.uncertainties = None
 
     @abstractmethod
-    def read_output(self,filename):
+    def convolve(self,wavs,radiances):
         pass
 
-    @abstractmethod
-    def get_TOA(self,filename):
-        pass
+    def get_radiances(self):
+        return self.radiances
 
-    @abstractmethod
-    def get_wavs(self,filename):
-        pass
-
-    @abstractmethod
-    def run_model(self,filename,albedo_file,aerosol,**kwargs):
-        pass
-
-    @abstractmethod
-    def plot_spectrum(self,filename):
-        pass   
+    def save_radiances(self,filename):
+        savefile=open(filename,"w")
+        savefile.write("#Wavelengths Radiances \n")
+        for i in range(len(self.wavs)):
+            savefile.write("%s   %s \n"%(self.wavs[i],self.radiances[i]))
+        savefile.close()

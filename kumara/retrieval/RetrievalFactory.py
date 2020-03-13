@@ -1,7 +1,7 @@
 """Run MCMC for atmospheric retrieval"""
 
 '''___Built-In Modules___'''
-from kumara.forwardModel.LibradtranModel import LibradtranModel
+from kumara.retrieval.MCMCRetrieval import MCMCRetrieval
 
 '''___Third-Party Modules___'''
 
@@ -17,11 +17,11 @@ __email__ = "pieter.de.vis@npl.co.uk"
 __status__ = "Development"
 
 
-class ForwardModelFactory():
+class RetrievalFactory():
     @staticmethod
-    def create_model(RTcode,*args,**kwargs):
-        if RTcode=='libradtran':
-            print("Using libradtran as forward model. \n")
-            return LibradtranModel(*args,**kwargs)
+    def create_retrieval(method,*args,**kwargs):
+        if method=='MCMC':
+            print("Using MCMC for retrieval \n")
+            return MCMCRetrieval(*args,**kwargs)
 
 
