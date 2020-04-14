@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import numpy.testing as npt
 from punpy.version import __version__
-import punpy
+from punpy.mc.mc_propagation import MCPropagation
 
 '''___Authorship___'''
 __author__ = "Pieter De Vis"
@@ -31,7 +31,7 @@ class TestMCPropagation(unittest.TestCase):
     Class for unit tests
     """
     def test_propagate_random(self):
-        prop = punpy.MCPropagation(10000)
+        prop = MCPropagation(10000)
 
         uf,ucorr = prop.propagate_random(test_function,[x1,x2],[x1err,x2err],
                                          only_u=False)
@@ -43,7 +43,7 @@ class TestMCPropagation(unittest.TestCase):
         npt.assert_allclose(uf,yerr_corr,atol=0.03)
 
     def test_propagate_systematic(self):
-        prop = punpy.MCPropagation(10000)
+        prop = MCPropagation(10000)
 
         uf,ucorr = prop.propagate_systematic(test_function,[x1,x2],[x1err,x2err],
                                          only_u=False)
@@ -55,7 +55,7 @@ class TestMCPropagation(unittest.TestCase):
         npt.assert_allclose(uf,yerr_corr,atol=0.03)
 
     def test_propagate_both(self):
-        prop = punpy.MCPropagation(10000)
+        prop = MCPropagation(10000)
 
         uf,ucorr = prop.propagate_both(test_function,[x1,x2],[x1err,x2err],
                                        [np.zeros_like(x1err),np.zeros_like(x2err)],return_corr=True)
@@ -72,7 +72,7 @@ class TestMCPropagation(unittest.TestCase):
         npt.assert_allclose(uf,yerr_corr,atol=0.03)
 
     def test_propagate_type(self):
-        prop = punpy.MCPropagation(10000)
+        prop = MCPropagation(10000)
 
         uf,ucorr = prop.propagate_type(test_function,[x1,x2],[x1err,x2err],['rand','rand'],return_corr=True)
         npt.assert_allclose(ucorr,np.eye(len(ucorr)),atol=0.05)
