@@ -6,8 +6,8 @@ from io import open
 # Get package __version__.
 # Same effect as "from s import __version__",
 # but avoids importing the module which may not be installed yet:
-here = path.abspath(path.dirname(__file__))
 __version__ = None
+here = path.abspath(path.dirname(__file__))
 with open('punpy/version.py') as f:
     exec(f.read())
 
