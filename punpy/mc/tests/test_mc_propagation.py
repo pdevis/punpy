@@ -27,6 +27,9 @@ yerr_uncorr=8**0.5*np.ones(200)
 yerr_corr=np.zeros(200)
 
 class TestMCPropagation(unittest.TestCase):
+    """
+    Class for unit tests
+    """
     def test_propagate_random(self):
         prop = punpy.MCPropagation(10000)
 
