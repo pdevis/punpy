@@ -1,29 +1,9 @@
-# README #
+# hypernets_processor
+[![Build Status](https://travis-ci.org/HYPERNETS/hypernets_processor.svg?branch=master)](https://travis-ci.org/github/pdevis/punpy) [![codecov](https://codecov.io/gh/pdevis/punpy/branch/master/graph/badge.svg)](https://codecov.io/gh/pdevis/punpy) [![Documentation Status](https://readthedocs.org/projects/punpy/badge/?version=latest)](https://punpy.readthedocs.io/en/latest/?badge=latest)
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This is a tool to propagate uncertainties and calculate covariance/correlation matrices through a given measurement function. It is under development by the ECO group of the UK National Physical Labaratory. 
 
-### What is this repository for? ###
+## Documentation
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+For more information visit our [documentation](https://punpy.readthedocs.io/en/latest/).
 
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
