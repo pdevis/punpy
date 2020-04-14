@@ -394,9 +394,6 @@ class MCPropagation:
         if np.any(abs(A-A3)/A > 0.0001):
             raise ValueError(
                 "One of the provided covariance matrix is not postive definite. Covariance matrices need to be at least positive semi-definite. Please check your covariance matrix.")
-        true
-        when
-        input is positive-definite
         else:
             print(
                 "One of the provided covariance matrix is not positive definite. It has been slightly changed (less than 0.01% in any element) to accomodate our method.")
