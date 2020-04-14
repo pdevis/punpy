@@ -22,7 +22,7 @@ install:
   - conda info -a
 
   - conda env create --file environment.yml
-  - source activate punpy
+  - source activate punpy_env
 
 script:
   # For the unit-tests, disable Numba JIT, otherwise Coverage wont reach the actual Python code
