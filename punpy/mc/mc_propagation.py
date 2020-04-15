@@ -214,7 +214,8 @@ class MCPropagation:
 
     def generate_samples_random(self,param,u_param):
         """
-        Generate MC samples of input quantity with random (Gaussian) uncertainties
+        Generate MC samples of input quantity with random (Gaussian) uncertainties.
+
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param: uncertainties on input quantity (std of distribution)
@@ -234,7 +235,8 @@ class MCPropagation:
 
     def generate_samples_systematic(self,param,u_param):
         """
-        Generate correlated MC samples of input quantity with systematic (Gaussian) uncertainties
+        Generate correlated MC samples of input quantity with systematic (Gaussian) uncertainties.
+
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param: uncertainties on input quantity (std of distribution)
@@ -254,7 +256,8 @@ class MCPropagation:
 
     def generate_samples_both(self,param,u_param_rand,u_param_syst):
         """
-        Generate correlated MC samples of the input quantity with random and systematic (Gaussian) uncertainties
+        Generate correlated MC samples of the input quantity with random and systematic (Gaussian) uncertainties.
+
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param_rand: random uncertainties on input quantity (std of distribution)

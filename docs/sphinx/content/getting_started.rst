@@ -25,8 +25,9 @@ First clone the project repository from GitHub::
 
    $ git clone https://github.com/pdevis/punpy.git
 
-Then install the module with pip::
+Then go into this directory and install the module with pip::
 
-   $ pip install punpy/
+   $ cd punpy
+   $ pip install .
 
 This should automatically install the dependencies.
