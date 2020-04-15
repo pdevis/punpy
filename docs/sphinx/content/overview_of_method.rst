@@ -19,8 +19,8 @@ The measurement function can be written mathematically as:
 
 where:
 
--  :math:`f` is the measurment function
--  :math:`y` is the measurand
+-  :math:`f` is the measurment function;
+-  :math:`y` is the measurand;
 -  :math:`x_{i}` are the input quantities.
 
 The measurand and input quantities are often vectors consisting of multiple numbers. E.g. in spectroscopy, the input quantities and measurand each have measurements for multiple wavelengths. These wavelengths are the same for the input quantities and the measurand. We refer to the 'Principles of Uncertainty Analysis' section below for more details on the vocabulary used and the various types of uncertainty.
@@ -41,7 +41,7 @@ Once this kind of measurement function is defined, we can use the various punpy 
 
 A number of methods can then be used, depending on the kind of uncertainties that need to be propagated.
 First, there are the cases of propagating random and systematic uncertainties individually.
-In order to do this, punpy generates MC samples from the input quantities (which can be individually correlated or not), and than propagates these samples through the measurement function. Punpy generates random normally distributed samples and then correlates them where necessary using the Cholesky decomposition method. For more details see the Monte Carlo Approach section below.
+In order to do this, punpy generates MC samples from the input quantities (which can be individually correlated or not), and then propagates these samples through the measurement function. Punpy generates random normally distributed samples and then correlates them where necessary using the Cholesky decomposition method. For more details see the Monte Carlo Approach section below.
 
 When given values (arrays or numbers) for the input quantities xn, and their random (ur_xn) or systematic (us_xn) uncertainties, punpy can be used to propage random and systematic uncertainties as follows::
 
@@ -86,7 +86,7 @@ Finally, it is also possible to return the generated samples by setting the opti
    ur_y, samplesr_y, samplesr_x = prop.propagate_random(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3], corr_between=corr_x1x2x3, return_samples=True)
    ub_y, corrb_y, samplesr_y, samplesr_x = prop.propagate_both(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3], [us_x1, us_x2, us_x3], return_samples=True)
 
-Further examples for different shapes of input quantities are given on the 'examples https://punpy.readthedocs.io/en/latest/content/examples.html#'_ page.
+Further examples for different shapes of input quantities are given on the 'examples <https://punpy.readthedocs.io/en/latest/content/examples.html>'_ page.
 
 Principles of Uncertainty Analysis
 ###################################
