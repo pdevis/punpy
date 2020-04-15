@@ -24,5 +24,5 @@ setup(name='punpy',
       url='http://www.npl.co.uk',
       keywords="uncertainty propagation measurement function",
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-      install_requires=['numpy'],
+      install_requires=['numpy','matplotlib'],
 )
