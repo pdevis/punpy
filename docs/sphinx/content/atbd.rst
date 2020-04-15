@@ -8,5 +8,5 @@
 Algorithm Theoretical Basis
 ===========================
 
-in progress
+In progress
 ###########

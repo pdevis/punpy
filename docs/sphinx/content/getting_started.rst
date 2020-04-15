@@ -11,7 +11,7 @@ Getting Started
 Dependencies
 #############
 
-The hypernets_processor has the following dependencies:
+Punpy has the following dependencies:
 
 * Python (3.7 or above)
 * `numpy <https://numpy.org>`_
@@ -21,11 +21,11 @@ The hypernets_processor has the following dependencies:
 Installation
 #############
 
-First clone the project repository from GitHub::
+First go to the folder where you want to save punpy and clone the project repository from GitHub::
 
    $ git clone https://github.com/pdevis/punpy.git
 
-Then go into this directory and install the module with pip::
+Then go into the created directory and install the module with pip::
 
    $ cd punpy
    $ pip install .
