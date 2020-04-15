@@ -1,0 +1,32 @@
+.. Getting Started
+   Author: Pieter De Vis
+   Email: pieter.de.vis@npl.co.uk
+   Created: 15/04/20
+
+.. _getting_started:
+
+Getting Started
+===============
+
+Dependencies
+#############
+
+The hypernets_processor has the following dependencies:
+
+* Python (3.7 or above)
+* `numpy <https://numpy.org>`_
+* `matplotlib <https://matplotlib.org>`_
+
+
+Installation
+#############
+
+First clone the project repository from GitHub::
+
+   $ git clone https://github.com/pdevis/punpy.git
+
+Then install the module with pip::
+
+   $ pip install punpy/
+
+This should automatically install the dependencies.

@@ -73,7 +73,6 @@ class TestMCPropagation(unittest.TestCase):
 
     def test_propagate_type(self):
         prop = MCPropagation(10000)
-
         uf,ucorr = prop.propagate_type(test_function,[x1,x2],[x1err,x2err],['rand','rand'],return_corr=True)
         npt.assert_allclose(ucorr,np.eye(len(ucorr)),atol=0.05)
         npt.assert_allclose(uf,yerr_uncorr,rtol=0.03)

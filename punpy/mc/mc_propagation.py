@@ -10,23 +10,6 @@ __maintainer__ = "Pieter De Vis"
 __email__ = "pieter.de.vis@npl.co.uk"
 __status__ = "Development"
 
-
-def timer(func):
-    """A decorator that prints how long a function took to run."""
-
-    def wrapper(*args,**kwargs):
-        t_start = time.time()
-
-        result = func(*args,**kwargs)
-
-        t_total = time.time()-t_start
-        print('{} took {}s'.format(func.__name__,t_total))
-
-        return result
-
-    return wrapper
-
-
 class MCPropagation:
     def __init__(self,steps):
         """
@@ -38,7 +21,7 @@ class MCPropagation:
 
         self.MCsteps = steps
 
-    @timer
+
     def propagate_random(self,func,x,u_x,corr_between=None,return_corr=False,return_samples=False):
         """
         Propagate random uncertainties through measurement function with n input quantities.
@@ -68,7 +51,6 @@ class MCPropagation:
 
         return self.process_samples(func,MC_data,return_corr,return_samples)
 
-    @timer
     def propagate_systematic(self,func,x,u_x,corr_between=None,return_corr=False,return_samples=False):
         """
         Propagate systematic uncertainties through measurement function with n input quantities.
@@ -98,7 +80,6 @@ class MCPropagation:
 
         return self.process_samples(func,MC_data,return_corr,return_samples)
 
-    @timer
     def propagate_both(self,func,x,u_x_rand,u_x_syst,corr_between=None,return_corr=True,return_samples=False):
         """
         Propagate random and systematic uncertainties through measurement function with n input quantities.
@@ -130,7 +111,6 @@ class MCPropagation:
 
         return self.process_samples(func,MC_data,return_corr,return_samples)
 
-    @timer
     def propagate_type(self,func,x,u_x,u_type,corr_between=None,return_corr=True,return_samples=False):
         """
         Propagate random or systematic uncertainties through measurement function with n input quantities.
@@ -168,7 +148,6 @@ class MCPropagation:
 
         return self.process_samples(func,MC_data,return_corr,return_samples)
 
-    @timer
     def propagate_cov(self,func,x,cov_x,corr_between=None,return_corr=True,return_samples=False):
         """
         Propagate uncertainties with given covariance matrix through measurement function with n input quantities.
@@ -178,8 +157,7 @@ class MCPropagation:
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
         :type x: list[array]
-        :param cov_x: list of covariance matrices on input quantities (usually numpy arrays). In case the input
-        quantity is an array of shape (m,o), the covariance matrix needs to be given as an array of shape (m*o,m*o).
+        :param cov_x: list of covariance matrices on input quantities (usually numpy arrays). In case the input quantity is an array of shape (m,o), the covariance matrix needs to be given as an array of shape (m*o,m*o).
         :type cov_x: list[array]
         :param corr_between: covariance matrix (n,n) between input quantities, defaults to None
         :type corr_between: array, optional
@@ -222,7 +200,7 @@ class MCPropagation:
         u_func = np.std(MC_y,axis=-1)
         if not return_corr:
             if return_samples:
-                return u_func,MC_y
+                return u_func,MC_y,data
             else:
                 return u_func
         else:
@@ -230,7 +208,7 @@ class MCPropagation:
                 MC_y = MC_y.reshape((MC_y.shape[0]*MC_y.shape[1],self.MCsteps))
             corr_y = np.corrcoef(MC_y)
             if return_samples:
-                return u_func,corr_y,MC_y
+                return u_func,corr_y,MC_y,data
             else:
                 return u_func,corr_y
 
