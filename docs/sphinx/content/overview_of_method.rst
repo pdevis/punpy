@@ -86,7 +86,7 @@ Finally, it is also possible to return the generated samples by setting the opti
    ur_y, samplesr_y, samplesr_x = prop.propagate_random(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3], corr_between=corr_x1x2x3, return_samples=True)
    ub_y, corrb_y, samplesr_y, samplesr_x = prop.propagate_both(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3], [us_x1, us_x2, us_x3], return_samples=True)
 
-Further examples for different shapes of input quantities are given on the :ref:examples page.
+Further examples for different shapes of input quantities are given on the 'examples https://punpy.readthedocs.io/en/latest/content/examples.html#'_ page.
 
 Principles of Uncertainty Analysis
 ###################################

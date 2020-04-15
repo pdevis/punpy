@@ -28,7 +28,7 @@ API Documentation
 .. toctree::
    :maxdepth: 3
 
-   content/API/punpy.mc
+   content/API/punpy
 
 Indices and tables
 ==================
