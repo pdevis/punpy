@@ -39,6 +39,8 @@ This could look something like::
 
 The resulting uncertainty budget can then be calculated with punpy as::
 
+   import punpy
+
    prop=punpy.MCPropagation(10000)
    L1=calibrate(L0,gains,dark)
    L1_ur=prop.propagate_random(calibrate,[L0,gains,dark],[L0_ur,gains_ur,dark_ur])
