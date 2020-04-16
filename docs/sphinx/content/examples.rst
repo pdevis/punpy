@@ -16,8 +16,8 @@ Imagine you are trying to calibrate some L0 data to L1 and you have:
 
 -  A measurement function that uses L0 data, gains, and a dark signal in 5 wavelength bands
 -  Random uncertainties and systematic uncertainties on the L0 data;
--  Random uncertainties on the gains;
--  Random and systematic uncertainties on the dark signal
+-  Random and systematic uncertainties on the gains;
+-  Random uncertainties on the dark signal.
 
 This could look something like::
 
