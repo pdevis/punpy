@@ -1,7 +1,7 @@
 """Use Monte Carlo to propagate uncertainties"""
 
 import numpy as np
-import time
+from multiprocessing import Pool
 
 '''___Authorship___'''
 __author__ = "Pieter De Vis"
@@ -11,22 +11,20 @@ __email__ = "pieter.de.vis@npl.co.uk"
 __status__ = "Development"
 
 class MCPropagation:
-    def __init__(self,steps):
+    def __init__(self,steps,parallel_cores=0):
         """
         Initialise MC Propagator
-
         :param steps: number of MC iterations
         :type steps: int
         """
 
         self.MCsteps = steps
-
+        self.parallel_cores = parallel_cores
 
     def propagate_random(self,func,x,u_x,corr_between=None,return_corr=False,return_samples=False):
         """
         Propagate random uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
-
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -55,7 +53,6 @@ class MCPropagation:
         """
         Propagate systematic uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
-
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -76,7 +73,7 @@ class MCPropagation:
             MC_data[i] = self.generate_samples_systematic(x[i],u_x[i])
 
         if corr_between is not None:
-            MC_data = self.correlate_samples_corr(MC_data,corr_between)
+           MC_data = self.correlate_samples_corr(MC_data,corr_between)
 
         return self.process_samples(func,MC_data,return_corr,return_samples)
 
@@ -84,7 +81,6 @@ class MCPropagation:
         """
         Propagate random and systematic uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
-
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -115,7 +111,6 @@ class MCPropagation:
         """
         Propagate random or systematic uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
-
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -152,7 +147,6 @@ class MCPropagation:
         """
         Propagate uncertainties with given covariance matrix through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
-
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -184,7 +178,6 @@ class MCPropagation:
         """
         Run the MC-generated samples of input quantities through the measurement function and calculate
         correlation matrix if required.
-
         :param func: measurement function
         :type func: function
         :param data: MC-generated samples of input quantities
@@ -196,7 +189,27 @@ class MCPropagation:
         :return: uncertainties on measurand
         :rtype: array
         """
-        MC_y = func(*data)
+        if self.parallel_cores==0:
+            MC_y = func(*data)
+
+        elif self.parallel_cores==1:
+            # In order to Process the MC iterations separately, the array with the input quantities has to be reordered
+            # so that it has the same length (i.e. the first dimension) as the number of MCsteps.
+            # First we move the axis with the same length as self.MCsteps from the last dimension to the fist dimension
+            data2 = [np.moveaxis(dat,-1,0) for dat in data]
+            # The function can then be applied to each of these MCsteps
+            MC_y2 = list(map(func,*data2))
+            # We then reorder to bring it back to the original shape
+            MC_y = np.moveaxis(MC_y2,0,-1)
+
+        else:
+            # We again need to reorder the input quantities samples in order to be able to pass them to p.starmap
+            # We here use lists to iterate over and order them slightly different as the case above.
+            data2=[[data[j][...,i] for j in range(len(data))] for i in range(self.MCsteps)]
+            with Pool(self.parallel_cores) as p:
+                MC_y2=np.array(p.starmap(func,data2))
+            MC_y = np.moveaxis(MC_y2,0,-1)
+
         u_func = np.std(MC_y,axis=-1)
         if not return_corr:
             if return_samples:
@@ -215,7 +228,6 @@ class MCPropagation:
     def generate_samples_random(self,param,u_param):
         """
         Generate MC samples of input quantity with random (Gaussian) uncertainties.
-
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param: uncertainties on input quantity (std of distribution)
@@ -236,7 +248,6 @@ class MCPropagation:
     def generate_samples_systematic(self,param,u_param):
         """
         Generate correlated MC samples of input quantity with systematic (Gaussian) uncertainties.
-
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param: uncertainties on input quantity (std of distribution)
@@ -257,7 +268,6 @@ class MCPropagation:
     def generate_samples_both(self,param,u_param_rand,u_param_syst):
         """
         Generate correlated MC samples of the input quantity with random and systematic (Gaussian) uncertainties.
-
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param_rand: random uncertainties on input quantity (std of distribution)
@@ -272,9 +282,7 @@ class MCPropagation:
                 size=self.MCsteps)*u_param_syst+param
         elif len(param.shape) == 1:
             return np.random.normal(size=(len(param),self.MCsteps))*u_param_rand[:,None]+np.dot(u_param_syst[:,None],
-                                                                                                np.random.normal(
-                                                                                                    size=self.MCsteps)[
-                                                                                                None,:])+param[:,None]
+                np.random.normal(size=self.MCsteps)[None,:])+param[:,None]
         elif len(param.shape) == 2:
             return np.random.normal(size=param.shape+(self.MCsteps,))*u_param_rand[:,:,None]+np.dot(
                 u_param_syst[:,:,None],np.random.normal(size=self.MCsteps)[:,None,None])[:,:,:,0]+param[:,:,None]
@@ -286,7 +294,6 @@ class MCPropagation:
         """
         Generate correlated MC samples of input quantity with a given covariance matrix.
         Samples are generated independent and then correlated using Cholesky decomposition.
-
         :param param: values of input quantity (mean of distribution)
         :type param: array
         :param cov_param: covariance matrix for input quantity
@@ -304,7 +311,6 @@ class MCPropagation:
     def correlate_samples_corr(self,samples,corr):
         """
         Method to correlate independent samples of input quantities using correlation matrix and Cholesky decomposition.
-
         :param samples: independent samples of input quantities
         :type samples: array[array]
         :param corr: correlation matrix between input quantities
@@ -333,20 +339,15 @@ class MCPropagation:
     def nearestPD(A):
         """
         Find the nearest positive-definite matrix
-
         :param A: correlation matrix or covariance matrix
         :type A: array
         :return: nearest positive-definite matrix
         :rtype: array
-
         Copied and adapted from [1] under BSD license.
         A Python/Numpy port of John D'Errico's `nearestSPD` MATLAB code [2], which
         credits [3].
-
         [1] https://gist.github.com/fasiha/fdb5cec2054e6f1c6ae35476045a0bbd
-
         [2] https://www.mathworks.com/matlabcentral/fileexchange/42885-nearestspd
-
         [3] N.J. Higham, "Computing a nearest symmetric positive semidefinite
         matrix" (1988): https://doi.org/10.1016/0024-3795(88)90223-6
         """
@@ -384,7 +385,6 @@ class MCPropagation:
     def isPD(B):
         """
         Returns true when input is positive-definite, via Cholesky
-
         :param B: matrix
         :type B: array
         :return: true when input is positive-definite
@@ -400,7 +400,6 @@ class MCPropagation:
     def convert_corr_to_cov(corr,u):
         """
         Convert correlation matrix to covariance matrix
-
         :param corr: correlation matrix
         :type corr: array
         :param u: uncertainties
@@ -414,7 +413,6 @@ class MCPropagation:
     def convert_cov_to_corr(cov,u):
         """
         Convert covariance matrix to correlation matrix
-
         :param corr: covariance matrix
         :type corr: array
         :param u: uncertainties

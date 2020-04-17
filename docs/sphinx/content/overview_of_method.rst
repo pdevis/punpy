@@ -31,19 +31,34 @@ For example::
     def measurement_function(x1,x2,x3):
 	y=x1+x2-x3 # here any real measurement function can be implemented
         return y
-   
+
 **Propagating random and systematic uncertainties** 
     
 Once this kind of measurement function is defined, we can use the various punpy methods to propagate uncertainties though this measurement function. In order to do this, we first create a MCPropagation object::
 
    import punpy
+
    prop=punpy.MCPropagation(10000) # Here the number is how many MC samples will be generated
 
-A number of methods can then be used, depending on the kind of uncertainties that need to be propagated.
-First, there are the cases of propagating random and systematic uncertainties individually.
-In order to do this, punpy generates MC samples from the input quantities (which can be individually correlated or not), and then propagates these samples through the measurement function. Punpy generates random normally distributed samples and then correlates them where necessary using the Cholesky decomposition method. For more details see the Monte Carlo Approach section below.
+   # Or if you have a measurement function that does not accept higher dimensional arrays as argument:
+   prop=punpy.MCPropagation(10000,parallel_cores=1)
 
-When given values (arrays or numbers) for the input quantities xn, and their random (ur_xn) or systematic (us_xn) uncertainties, punpy can be used to propage random and systematic uncertainties as follows::
+In order to do propagate uncertainties, punpy generates MC samples from the input quantities
+(which can be individually correlated or not), and then propagates these samples through the
+measurement function. This is typically done by passing an array consisting of all MC steps of an
+input quantity instead of the input quantity themselve for each of the input quantities. Here it is assumed
+the measurement function can deal with these higher dimensional arrays by just perfurming numpy operations.
+However, this is not always the case. If the inputs to the measurement function are less flexible,
+We can instead pass each MC sample individually tothe measurement function by setting the optional
+parallel_cores keyword to 1. At the end of this section we'll also see how to use this keyword for parallel processing.
+
+A number of methods can then be used to propagate uncertainties, depending on the kind of uncertainties that need to be propagated.
+Internally, punpy always generates random normally distributed samples first and then correlates
+them where necessary using the Cholesky decomposition method. For more details see the Monte
+Carlo Approach section below.
+
+We start by showing how to propagating random and systematic uncertainties individually.
+When given values (arrays or numbers) for the input quantities xn, and their random (ur_xn) or systematic (us_xn) uncertainties, punpy can be used to propage these uncertainties as follows::
 
    y = measurement_function(x1, x2, x3)
    ur_y = prop.propagate_random(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3])
@@ -81,12 +96,35 @@ This keyword needs to be set to the correlation matrix between the input quantit
    uc2_y, corrc2_y = prop.propagate_cov(measurement_function, [x1, x2, x3], [cov_x1, cov_x2, cov_x3], corr_between = corr_x1x2x3)
 
 
-Finally, it is also possible to return the generated samples by setting the optional return_samples keyword to True::
+It is also possible to return the generated samples by setting the optional return_samples keyword to True::
 
    ur_y, samplesr_y, samplesr_x = prop.propagate_random(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3], corr_between=corr_x1x2x3, return_samples=True)
    ub_y, corrb_y, samplesr_y, samplesr_x = prop.propagate_both(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3], [us_x1, us_x2, us_x3], return_samples=True)
 
 Further examples for different shapes of input quantities are given on the 'examples <https://punpy.readthedocs.io/en/latest/content/examples.html>'_ page.
+
+**Processing the MC samples in parallel**
+At the start of this section we already saw that the optional parallel_cores keyword can be used to running the MC
+samples one-by-one through the measurement function rather than all at once as in the standard case. It is also possible
+to use the same keyword to use parallel processing. Here, only the processing of the input quantities through the measurement
+function is done in parallel. Generating the samples and calculating the covariance matrix etc is still done as normal.
+Punpy uses the multiprocessing module which comes standard with your python distribution.
+The gain by using parallel processing only really outweighs the overhead if the measurement function is relatively slow
+(of the order of 0.1 s or slower for one set of input quantities).
+
+Parallel processing can be done as follows::
+
+   if __name__ == "__main__":
+      prop = punpy.MCPropagation(10000,parallel_cores=4)
+      ur_y = prop.propagate_random(measurement_function, [x1, x2, x3], [ur_x1, ur_x2, ur_x3])
+      us_y = prop.propagate_systematic(measurement_function, [x1, x2, x3], [us_x1, us_x2, us_x3])
+      print(ur_y)
+      print(us_y)
+
+Note that the use of 'if __name__ == "__main__":' is required when using a Windows machine for multiprocessing and is generally good practise.
+When processing in parallel, child processes are generated from the parent code, and the above statement is necessary in Windows to avoid the child processes to generate children themselves.
+Everything using the results of the multiprocessing needs to be inside the 'if __name__ == "__main__"'.
+However the measurement function itself needs to be outside this since the child processes need to find this.
 
 Principles of Uncertainty Analysis
 ###################################
