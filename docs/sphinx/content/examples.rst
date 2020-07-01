@@ -58,9 +58,7 @@ We now have for each band the random uncertainties in L1, systematic uncertainti
 
 
 It is also possible to include covariance between the input variables. E.g. consider the previous example but where 
-now the dark signal also has systematic uncertainties, which are entirely correlated with the systamtic uncertainties on the L0 data (quite commonly the same detector is used for dark and L0).
-
-We then have::
+now the dark signal also has systematic uncertainties, which are entirely correlated with the systamtic uncertainties on the L0 data (quite commonly the same detector is used for dark and L0). We then have::
 
    import numpy as np
 
