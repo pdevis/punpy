@@ -54,6 +54,7 @@ The resulting uncertainty budget can then be calculated with punpy as::
    print(L1_us)
    print(L1_ut)
    print(L1_cov)
+
 We now have for each band the random uncertainties in L1, systematic uncertainties in L1, total uncertainty in L1 and the covariance matrix between bands.
 
 

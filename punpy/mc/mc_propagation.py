@@ -14,6 +14,7 @@ class MCPropagation:
     def __init__(self,steps,parallel_cores=0):
         """
         Initialise MC Propagator
+
         :param steps: number of MC iterations
         :type steps: int
         """
@@ -25,6 +26,7 @@ class MCPropagation:
         """
         Propagate random uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
+
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -53,6 +55,7 @@ class MCPropagation:
         """
         Propagate systematic uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
+
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -81,6 +84,7 @@ class MCPropagation:
         """
         Propagate random and systematic uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
+
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -111,6 +115,7 @@ class MCPropagation:
         """
         Propagate random or systematic uncertainties through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
+
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -147,6 +152,7 @@ class MCPropagation:
         """
         Propagate uncertainties with given covariance matrix through measurement function with n input quantities.
         Input quantities can be floats, vectors or images.
+
         :param func: measurement function
         :type func: function
         :param x: list of input quantities (usually numpy arrays)
@@ -178,6 +184,7 @@ class MCPropagation:
         """
         Run the MC-generated samples of input quantities through the measurement function and calculate
         correlation matrix if required.
+
         :param func: measurement function
         :type func: function
         :param data: MC-generated samples of input quantities
@@ -228,6 +235,7 @@ class MCPropagation:
     def generate_samples_random(self,param,u_param):
         """
         Generate MC samples of input quantity with random (Gaussian) uncertainties.
+
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param: uncertainties on input quantity (std of distribution)
@@ -268,6 +276,7 @@ class MCPropagation:
     def generate_samples_both(self,param,u_param_rand,u_param_syst):
         """
         Generate correlated MC samples of the input quantity with random and systematic (Gaussian) uncertainties.
+
         :param param: values of input quantity (mean of distribution)
         :type param: float or array
         :param u_param_rand: random uncertainties on input quantity (std of distribution)
@@ -294,6 +303,7 @@ class MCPropagation:
         """
         Generate correlated MC samples of input quantity with a given covariance matrix.
         Samples are generated independent and then correlated using Cholesky decomposition.
+
         :param param: values of input quantity (mean of distribution)
         :type param: array
         :param cov_param: covariance matrix for input quantity
@@ -311,6 +321,7 @@ class MCPropagation:
     def correlate_samples_corr(self,samples,corr):
         """
         Method to correlate independent samples of input quantities using correlation matrix and Cholesky decomposition.
+
         :param samples: independent samples of input quantities
         :type samples: array[array]
         :param corr: correlation matrix between input quantities
@@ -339,10 +350,12 @@ class MCPropagation:
     def nearestPD(A):
         """
         Find the nearest positive-definite matrix
+
         :param A: correlation matrix or covariance matrix
         :type A: array
         :return: nearest positive-definite matrix
         :rtype: array
+
         Copied and adapted from [1] under BSD license.
         A Python/Numpy port of John D'Errico's `nearestSPD` MATLAB code [2], which
         credits [3].
@@ -385,6 +398,7 @@ class MCPropagation:
     def isPD(B):
         """
         Returns true when input is positive-definite, via Cholesky
+
         :param B: matrix
         :type B: array
         :return: true when input is positive-definite
@@ -400,6 +414,7 @@ class MCPropagation:
     def convert_corr_to_cov(corr,u):
         """
         Convert correlation matrix to covariance matrix
+
         :param corr: correlation matrix
         :type corr: array
         :param u: uncertainties
@@ -413,6 +428,7 @@ class MCPropagation:
     def convert_cov_to_corr(cov,u):
         """
         Convert covariance matrix to correlation matrix
+
         :param corr: covariance matrix
         :type corr: array
         :param u: uncertainties

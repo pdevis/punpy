@@ -20,4 +20,5 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   punpy.main
    punpy.version
