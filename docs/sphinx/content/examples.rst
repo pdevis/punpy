@@ -56,6 +56,50 @@ The resulting uncertainty budget can then be calculated with punpy as::
    print(L1_cov)
 We now have for each band the random uncertainties in L1, systematic uncertainties in L1, total uncertainty in L1 and the covariance matrix between bands.
 
+
+It is also possible to include covariance between the input variables. E.g. consider the previous example but where 
+now the dark signal also has systematic uncertainties, which are entirely correlated with the systamtic uncertainties on the L0 data (quite commonly the same detector is used for dark and L0).
+
+We then have::
+
+   import numpy as np
+
+   # your measurement function
+   def calibrate(L0,gains,dark):
+      return (L0-dark)*gains
+
+   # your data
+   L0 = np.array([0.43,0.8,0.7,0.65,0.9])
+   dark = np.array([0.05,0.03,0.04,0.05,0.06])
+   gains = np.array([23,26,28,29,31])
+
+   # your uncertainties
+   L0_ur = L0*0.05  # 5% random uncertainty
+   L0_us = np.ones(5)*0.03  # systematic uncertainty of 0.03 (common between bands)
+   gains_ur = np.array([0.5,0.7,0.6,0.4,0.1])  # random uncertainty
+   gains_us = np.array([0.1,0.2,0.1,0.4,0.3])  # systematic uncertainty (different for each band but fully correlated)
+   dark_ur = np.array([0.01,0.002,0.006,0.002,0.015])  # random uncertainty
+   dark_us = np.array([0.1,0.2,0.1,0.4,0.3])  # random uncertainty
+
+   # correlation matrix between the input variables:
+   corr_input_syst=[[1,0,1],[0,1,0],[1,0,1]]  # Here the correlation is between the first and the third variable, following the order of the arguments in the measurement function
+
+After defining this correlation matrix between the systematic uncertainties on the input variables, the resulting uncertainty budget can then be calculated with punpy as::
+
+   import punpy
+
+   prop=punpy.MCPropagation(10000)
+   L1=calibrate(L0,gains,dark)
+   L1_ur=prop.propagate_random(calibrate,[L0,gains,dark],[L0_ur,gains_ur,dark_ur])
+   L1_us=prop.propagate_systematic(calibrate,[L0,gains,dark],[L0_us,gains_us,dark_us],corr_between=corr_input_syst)
+   
+   print(L1)
+   print(L1_ur)
+   print(L1_us)
+   
+This gives us the random and systematic uncertainties, which can be combined to get the total uncertainty. If instead we use the corr_between keyword in prop.propagate_both(), then the specified correlation matrix is assumed to apply to the combined random and systematic uncertainties. 
+An appropriate correlation matrix should be calculated in that case from the full covariance matrix (which includes both random and systematic contributions).
+
 If we had a slow measurement function and wanted to do parallel processing using 4 cores::
 
    import punpy
