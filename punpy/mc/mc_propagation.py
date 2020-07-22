@@ -2,7 +2,6 @@
 
 import numpy as np
 from multiprocessing import Pool
-import pandas as pd
 
 '''___Authorship___'''
 __author__ = "Pieter De Vis"
@@ -330,7 +329,6 @@ class MCPropagation:
                 corr_y = np.corrcoef(MC_y)
         else:
             print("MC_y has too high dimensions. Reduce the dimensionality of the input data")
-            panic
             exit()
 
         return corr_y
@@ -425,8 +423,8 @@ class MCPropagation:
         try:
             L = np.linalg.cholesky(cov_param)
         except:
-            cov = self.nearestPD(cov_param)
-            L = np.linalg.cholesky(cov_param)
+            L = self.nearestPD_cholesky(cov_param)
+
         return np.dot(L,np.random.normal(size=(len(param),self.MCsteps)))+param[:,None]
 
     def correlate_samples_corr(self,samples,corr):
@@ -446,8 +444,7 @@ class MCPropagation:
             try:
                 L = np.linalg.cholesky(corr)
             except:
-                corr = self.nearestPD(corr)
-                L = np.linalg.cholesky(corr)
+                L = self.nearestPD_cholesky(corr)
 
             #Cholesky needs to be applied to Gaussian distributions with mean=0 and std=1,
             #We first calculate the mean and std for each input quantity
@@ -504,6 +501,55 @@ class MCPropagation:
             print(
                 "One of the provided covariance matrix is not positive definite. It has been slightly changed (less than 0.01% in any element) to accomodate our method.")
             return A3
+
+    @staticmethod
+    def nearestPD_cholesky(A):
+        """
+        Find the nearest positive-definite matrix
+
+        :param A: correlation matrix or covariance matrix
+        :type A: array
+        :return: nearest positive-definite matrix
+        :rtype: array
+
+        Copied and adapted from [1] under BSD license.
+        A Python/Numpy port of John D'Errico's `nearestSPD` MATLAB code [2], which
+        credits [3].
+        [1] https://gist.github.com/fasiha/fdb5cec2054e6f1c6ae35476045a0bbd
+        [2] https://www.mathworks.com/matlabcentral/fileexchange/42885-nearestspd
+        [3] N.J. Higham, "Computing a nearest symmetric positive semidefinite
+        matrix" (1988): https://doi.org/10.1016/0024-3795(88)90223-6
+        """
+
+        B = (A+A.T)/2
+        _,s,V = np.linalg.svd(B)
+
+        H = np.dot(V.T,np.dot(np.diag(s),V))
+
+        A2 = (B+H)/2
+
+        A3 = (A2+A2.T)/2
+
+        try:
+            return np.linalg.cholesky(A3)
+        except:
+
+            spacing = np.spacing(np.linalg.norm(A))
+
+            I = np.eye(A.shape[0])
+            k = 1
+            while not MCPropagation.isPD(A3):
+                mineig = np.min(np.real(np.linalg.eigvals(A3)))
+                A3 += I*(-mineig*k**2+spacing)
+                k += 1
+
+            if np.any(abs(A-A3)/A > 0.0001):
+                raise ValueError(
+                    "One of the provided covariance matrix is not postive definite. Covariance matrices need to be at least positive semi-definite. Please check your covariance matrix.")
+            else:
+                print(
+                    "One of the provided covariance matrix is not positive definite. It has been slightly changed (less than 0.01% in any element) to accomodate our method.")
+                return A3
 
     @staticmethod
     def isPD(B):
