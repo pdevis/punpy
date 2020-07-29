@@ -48,7 +48,11 @@ class MCPropagation:
         """
         MC_data = np.empty(len(x),dtype=np.ndarray)
         for i in range(len(x)):
-            MC_data[i] = self.generate_samples_random(x[i],u_x[i])
+
+            if u_x[i] is None:
+                MC_data[i] = self.generate_samples_none(x[i])
+            else:
+                MC_data[i] = self.generate_samples_random(x[i],u_x[i])
 
         if corr_between is not None:
             MC_data = self.correlate_samples_corr(MC_data,corr_between)
@@ -332,6 +336,29 @@ class MCPropagation:
             exit()
 
         return corr_y
+
+    def generate_samples_none(self,param):
+        """
+        Generate MC samples of input quantity with no uncertainties
+
+        :param param: values of input quantity (mean of distribution)
+        :type param: float or array
+
+        :return: generated samples
+        :rtype: array
+        """
+
+        if not hasattr(param, "__len__"):
+            return np.zeros(shape=self.MCsteps) + param
+        elif len(param.shape) == 1:
+            return np.zeros(shape=(len(param),self.MCsteps)) + param[:, None]
+        elif len(param.shape) == 2:
+            return np.zeros(shape=param.shape + (self.MCsteps,)) + param[:, :, :, None]
+        elif len(param.shape) == 3:
+            return np.zeros(shape=param.shape + (self.MCsteps,)) + param[:, :, :, None]
+        else:
+            print("parameter shape not supported")
+            exit()
 
     def generate_samples_random(self,param,u_param):
         """
