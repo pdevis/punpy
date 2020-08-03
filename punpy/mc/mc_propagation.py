@@ -48,11 +48,10 @@ class MCPropagation:
         """
         MC_data = np.empty(len(x),dtype=np.ndarray)
         for i in range(len(x)):
-
             if u_x[i] is None:
-                MC_data[i] = self.generate_samples_none(x[i])
-            else:
-                MC_data[i] = self.generate_samples_random(x[i],u_x[i])
+                u_x[i]=np.zeros_like(x[i])
+
+            MC_data[i] = self.generate_samples_random(x[i],u_x[i])
 
         if corr_between is not None:
             MC_data = self.correlate_samples_corr(MC_data,corr_between)
@@ -85,10 +84,13 @@ class MCPropagation:
         """
         MC_data = np.empty(len(x),dtype=np.ndarray)
         for i in range(len(x)):
+            if u_x[i] is None:
+                u_x[i] = np.zeros_like(x[i])
+
             MC_data[i] = self.generate_samples_systematic(x[i],u_x[i])
 
         if corr_between is not None:
-           MC_data = self.correlate_samples_corr(MC_data,corr_between)
+            MC_data = self.correlate_samples_corr(MC_data,corr_between)
 
         return self.process_samples(func,MC_data,return_corr,return_samples,corr_axis,output_vars)
 
@@ -120,6 +122,11 @@ class MCPropagation:
         """
         MC_data = np.empty(len(x),dtype=np.ndarray)
         for i in range(len(x)):
+            if u_x_rand[i] is None:
+                u_x_rand[i] = np.zeros_like(x[i])
+            if u_x_syst[i] is None:
+                u_x_syst[i] = np.zeros_like(x[i])
+
             MC_data[i] = self.generate_samples_both(x[i],u_x_rand[i],u_x_syst[i])
 
         if corr_between is not None:
@@ -155,6 +162,8 @@ class MCPropagation:
         """
         MC_data = np.empty(len(x),dtype=np.ndarray)
         for i in range(len(x)):
+            if u_x[i] is None:
+                u_x[i] = np.zeros_like(x[i])
             if u_type[i].lower() == 'rand' or u_type[i].lower() == 'random' or u_type[i].lower() == 'r':
                 MC_data[i] = self.generate_samples_random(x[i],u_x[i])
             elif u_type[i].lower() == 'syst' or u_type[i].lower() == 'systematic' or u_type[i].lower() == 's':
@@ -196,6 +205,8 @@ class MCPropagation:
         for i in range(len(x)):
             if not hasattr(x[i],"__len__"):
                 MC_data[i] = self.generate_samples_systematic(x[i],cov_x[i])
+            elif (all((cov_x[i]==0).flatten())): #This is the case if one of the variables has no uncertainty
+                MC_data[i] = np.tile(x[i].flatten(),(self.MCsteps,1)).T
             else:
                 MC_data[i] = self.generate_samples_cov(x[i].flatten(),cov_x[i]).reshape(x[i].shape+(self.MCsteps,))
         if corr_between is not None:
@@ -337,29 +348,6 @@ class MCPropagation:
 
         return corr_y
 
-    def generate_samples_none(self,param):
-        """
-        Generate MC samples of input quantity with no uncertainties
-
-        :param param: values of input quantity (mean of distribution)
-        :type param: float or array
-
-        :return: generated samples
-        :rtype: array
-        """
-
-        if not hasattr(param, "__len__"):
-            return np.zeros(shape=self.MCsteps) + param
-        elif len(param.shape) == 1:
-            return np.zeros(shape=(len(param),self.MCsteps)) + param[:, None]
-        elif len(param.shape) == 2:
-            return np.zeros(shape=param.shape + (self.MCsteps,)) + param[:, :, :, None]
-        elif len(param.shape) == 3:
-            return np.zeros(shape=param.shape + (self.MCsteps,)) + param[:, :, :, None]
-        else:
-            print("parameter shape not supported")
-            exit()
-
     def generate_samples_random(self,param,u_param):
         """
         Generate MC samples of input quantity with random (Gaussian) uncertainties.
@@ -469,17 +457,25 @@ class MCPropagation:
             raise ValueError("The correlation matrix between variables is not the right shape or has elements >1.")
         else:
             try:
-                L = np.linalg.cholesky(corr)
+                L = np.array(np.linalg.cholesky(corr))
             except:
                 L = self.nearestPD_cholesky(corr)
 
             #Cholesky needs to be applied to Gaussian distributions with mean=0 and std=1,
             #We first calculate the mean and std for each input quantity
-            means = [np.mean(samples[i]) for i in range(len(samples))]
-            stds = [np.std(samples[i]) for i in range(len(samples))]
+            means = np.array([np.mean(samples[i]) for i in range(len(samples))])
+            stds = np.array([np.std(samples[i]) for i in range(len(samples))])
 
             #We normalise the samples with the mean and std, then apply Cholesky, and finally reapply the mean and std.
-            return np.dot(L,(samples-means)/stds)*stds+means
+            if all(stds!=0):
+                return np.dot(L,(samples-means)/stds)*stds+means
+
+            #If any of the variables has no uncertainty, the normalisation will fail. Instead we leave the parameters without uncertainty unchanged.
+            else:
+                samples_out=samples[:]
+                id_nonzero=np.where(stds!=0)
+                samples_out[id_nonzero]=np.dot(L[id_nonzero][:,id_nonzero],(samples[id_nonzero]-means[id_nonzero])/stds[id_nonzero])[:,0]*stds[id_nonzero]+means[id_nonzero]
+                return samples_out
 
     @staticmethod
     def nearestPD_cholesky(A):

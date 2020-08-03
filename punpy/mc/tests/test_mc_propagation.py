@@ -54,13 +54,13 @@ x3c=np.ones(200)*10
 
 x1errc=12*np.ones(200)
 x2errc=5*np.ones(200)
-x3errc=8*np.ones(200)
+x3errc=np.zeros(200)
 
 xsc=np.array([x1c,x2c,x3c])
 xerrsc=np.array([x1errc,x2errc,x3errc])
-corr_c=np.ones((3,3))#np.array([[1,0.9999999,0.9999999],[0.99999999,1.,0.99999999],[0.9999999,0.9999999,1.]])
-yerr_uncorrc=800**0.5*np.ones(200)
-yerr_corrc=256**0.5*np.ones(200)
+corr_c=np.array([[1,0.9999999,0],[0.99999999,1.,0],[0.,0.,1.]])
+yerr_uncorrc=544**0.5*np.ones(200)
+yerr_corrc=1024**0.5*np.ones(200)
 
 def test_functiond(x1,x2):
     return 2* x1 - x2, 2*x1+x2
@@ -219,16 +219,16 @@ class TestMCPropagation(unittest.TestCase):
 
         #c
         ufc,ucorrc = prop.propagate_both(test_functionc,xsc,xerrsc,
-                                       [np.zeros_like(x1errc),np.zeros_like(x2errc),np.zeros_like(x3errc)],return_corr=True)
+                                       [np.zeros_like(x1c),np.zeros_like(x2c),np.zeros_like(x3c)],return_corr=True)
         npt.assert_allclose(ucorrc,np.eye(len(ucorrc)),atol=0.05)
         npt.assert_allclose(ufc,yerr_uncorrc,rtol=0.05)
 
-        ufc,ucorrc = prop.propagate_both(test_functionc,xsc,[np.zeros_like(x1errc),np.zeros_like(x2errc),np.zeros_like(x3errc)],
+        ufc,ucorrc = prop.propagate_both(test_functionc,xsc,[np.zeros_like(x1c),np.zeros_like(x2c),np.zeros_like(x3c)],
                                        xerrsc,return_corr=True)
         npt.assert_allclose(ucorrc,np.ones_like(ucorrc),atol=0.05)
         npt.assert_allclose(ufc,yerr_uncorrc,rtol=0.05)
 
-        ufc = prop.propagate_both(test_functionc,xsc,xerrsc,[np.zeros_like(x1errc),np.zeros_like(x2errc),np.zeros_like(x3errc)],return_corr=False,corr_between=corr_c)
+        ufc = prop.propagate_both(test_functionc,xsc,xerrsc,[np.zeros_like(x1c),np.zeros_like(x2c),np.zeros_like(x3c)],return_corr=False,corr_between=corr_c)
         npt.assert_allclose(ufc,yerr_corrc,rtol=0.05)
 
     def test_propagate_type(self):
