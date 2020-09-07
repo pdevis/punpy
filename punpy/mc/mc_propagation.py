@@ -50,8 +50,9 @@ class MCPropagation:
         for i in range(len(x)):
             if u_x[i] is None:
                 u_x[i]=np.zeros_like(x[i])
-
+            print(x[i].shape,u_x[i].shape)
             MC_data[i] = self.generate_samples_random(x[i],u_x[i])
+            print(MC_data[i].nbytes)
 
         if corr_between is not None:
             MC_data = self.correlate_samples_corr(MC_data,corr_between)
